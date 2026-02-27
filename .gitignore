@@ -1,4 +1,5 @@
 *.py[cod]
 venv/
 .DS_Store
-assets-untracked/
+*.db
+__pycache__
