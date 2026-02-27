@@ -27,10 +27,17 @@ class User(CapeModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     first_name: str
     last_name: str
-    # TODO: use email to test migrations...
-    # email: str = Field(index=True)
+    # TODO:
+    #   - find a validator library and use somewhere in the chain of
+    #     adding/updating users (api, db layer, etc)
+    email: str = Field(index=True, unique=True)
 
     def __repr__(self):
+        # TODO: we want to make __repr__ methods useful for log tracing, but def
+        #       want to keep PII and (hopefully unlikely in this DB) PHI out.
+        #       this is for testing things right now but includes PII.
+        #       Additionally if we have a method that is usable for all table
+        #       models we can just put it in the base class or make a mixin
         return (
             f"<{self.__class__.__name__}(id='{self.id}', "
             f"first_name='{self.first_name}', "
