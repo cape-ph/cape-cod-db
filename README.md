@@ -64,13 +64,16 @@ are as follows:
 
 
 ### Setup DB
-Make sure the env file contains a valid DB_URL for your setup
+Make sure the env file contains a valid DB_URL for your setup. If you're 
+folling this setup exactly, the value is already correct 
+(`DB_URL="postgresql:///cape_env_db"`).
 
 Run the alembic migrations on the empty (or previously alembic updated) db to get up to date
 `alembic upgrade head`
 
 ### play with it
-From the python repl of your fancy
+From repo root in the python repl of your fancy (that has all the dependencies from 
+`requirements.txt`).
 
 ```python
 import cape_cod_db
