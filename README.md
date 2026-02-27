@@ -18,35 +18,39 @@ Just so it's said, these are dev only operations. Don't do this in anything but 
 # connect to postgres as default user
 sudo -iu postgres psql
 
+# replace <username> with your username in all of the below. you can do this 
+# however you want if you know what you're doing, username stuff just makes 
+# things quick for development.
+
 # create a group for granting some types of access
-postgres=# create role lp76_group nologin;
+postgres=# create role <username>_group nologin;
 
 # grant the group total select on the public schema 
-postgres=# grant select on all tables in schema public to lp76_group;
+postgres=# grant select on all tables in schema public to <username>_group;
 
 # and all future tables in the group
-postgres=# alter default privileges in schema public grant select on tables to lp76_group;
+postgres=# alter default privileges in schema public grant select on tables to <username>_group;
 
 # and usage on the public schema in general
-postgres=# grant usage on schema public to lp76_group;
+postgres=# grant usage on schema public to <username>_group;
 
-# now your user (replace <username> with your username)
+# now your user 
 postgres=# create role <username> with login;
 
-# let your user create databases (replace <username> with your username)
+# let your user create databases 
 postgres=# alter user <username> createdb;
 
 # create the cape db so we can grant some perms there
 postgres=# create database cape_env_db;
 
 # allow create of this database - not strictly necessary since this user has 
-# been granted createdb (replace <username> with your username)
+# been granted createdb 
 postgres=# grant create on database cape_env_db to <username>;
 
-# allow connect to this database (replace <username> with your username)
+# allow connect to this database 
 postgres=# grant connect on database cape_env_db to <username>;
 
-# make your user owner of the db (replace <username> with your username)
+# make your user owner of the db 
 postgres=# alter database cape_env_db owner to <username>;
 
 postgres=# exit
