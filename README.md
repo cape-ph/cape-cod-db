@@ -63,41 +63,50 @@ are as follows:
 - items in `requirements.txt`
 
 
-### populate db
+### Setup DB
 Make sure the env file contains a valid DB_URL for your setup
 
-Run the script to apply the schema
-`python app.py`
+Run the alembic migrations on the empty (or previously alembic updated) db to get up to date
+`alembic upgrade head`
 
 ### play with it
 From the python repl of your fancy
 
-```
+```python
 import cape_cod_db
 from sqlmodel import select, Session
 from cape_cod_db import database as db
 from cape_cod_db import models
 
-session = Session(db.engine)
-usr = models.User(first_name="drew", last_name="pihera")
-session.add(usr)
-session.commit()
+# add a user
+with Session(db.engine) as session:
+    usr = models.User(first_name="First", last_name="Last", email="fl@fakeemail.test")
+    session.add(usr)
+    session.commit()
 
-stmnt = select(models.User)
-res = session.exec(stmnt)
+# list the users in the db
+with Session(db.engine) as session:
+    stmnt = select(models.User)
+    res = session.exec(stmnt)
 
-all_users = res.all()
-for u in all_users:
-    print(u)
+    for u in res.all():
+        print(u)
 
-usr.first_name = "dru"
-session.add(usr)
-session.commit()
+# update the user
+with Session(db.engine) as session:
+    usr_stmnt = select(models.User).where(
+        models.User.first_name == "First", models.User.last_name == "Last"
+    )
+    usr = session.exec(usr_stmnt).first()
+    usr.first_name = "Furst"
+    session.add(usr)
+    session.commit()
 
-stmnt = select(models.User)
-res = session.exec(stmnt)
+# list them again to show the first name and modified time have changed.
+with Session(db.engine) as session:
+    stmnt = select(models.User)
+    res = session.exec(stmnt)
 
-all_users = res.all()
-for u in all_users:
-    print(u)
+    for u in res.all():
+        print(u)
 ```
