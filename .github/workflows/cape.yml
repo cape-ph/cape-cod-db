@@ -1,0 +1,44 @@
+name: CAPE
+on:
+    push:
+        branches: [main]
+    pull_request:
+    release:
+        types: [created]
+
+permissions:
+    pages: write
+    id-token: write
+
+jobs:
+    python:
+        name: Python
+        uses: cape-ph/.github/.github/workflows/poetry_python_checks.yml@sphinx
+        with:
+            # TODO: once initial churn is done and we have an MVP db model 
+            #       figured, get both tests and docs going for this project
+            pytest: false
+            sphinx: false
+    general:
+        name: General
+        uses: cape-ph/.github/.github/workflows/general_checks.yml@v1
+    publish:
+        name: Publsih to PyPI
+        needs: python
+        runs-on: ubuntu-latest
+        if: ${{ github.event_name == 'release' }}
+        environment:
+            name: pypi
+            url: https://pypi.org/p/cape_cod_db
+        permissions:
+            id-token: write
+        steps:
+            - uses: actions/checkout@v4
+            - run: pipx install poetry
+            - uses: actions/setup-python@v5
+              id: setup_python
+              with:
+                  python-version: 3.10
+                  cache: "poetry"
+            - run: poetry build
+            - uses: pypa/gh-action-pypi-publish@release/v1
