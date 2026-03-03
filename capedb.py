@@ -35,9 +35,9 @@ def downgrade(config: Config, revision: str) -> None:
 
 def main():
     cli = CommandLine()
-    cli.register_command(curr)
-    cli.register_command(upg)
-    cli.register_command(downg)
+    cli.register_command(current)
+    cli.register_command(upgrade)
+    cli.register_command(downgrade)
     cli.main()
 
 
