@@ -6,6 +6,7 @@ authors = ["L. Drew Pihera <drew.pihera@gtri.gatech.edu>"]
 license = "Apache-2.0"
 readme = "README.md"
 packages = [{ include = "cape_cod_db" }]
+include = ["app.py", "capedb.py", "alembic", "alembic.ini"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -15,6 +16,9 @@ alembic = "^1.18.4"
 python-dotenv = "^1.2.1"
 psycopg2-binary = "^2.9.11"
 sqlmodel = "^0.0.37"
+
+[tool.poetry.scripts]
+capedb = "capedb:main"
 
 [build-system]
 requires = ["poetry-core"]
