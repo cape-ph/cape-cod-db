@@ -33,18 +33,36 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 target_metadata = SQLModel.metadata
 
-# cape_cod_db has its own config file and als needs a database url. So we're
-# going to ignore what's set in the alembic ini and just use the value in the
-# config file being used in that config file.
-# TODO: we also specify a log level in that config. we *could* use that here,
-#       but for now we're going to respect what's in the alembic ini since the
-#       logging here is for a different purpose than the logging in the db app's
-#       setup
-proj_config = dotenv_values(os.path.join(proj_root, ".env"))
 
-# if the project config doesn't define this we have problems. the None here will
-# ensure we fail hitting the DB
-config.set_main_option("sqlalchemy.url", proj_config.get("DB_URL", None))
+# cape_cod_db has its own config file and which contains database url.
+# Additionally for migrations we're running from an ephemeral virtualenv that
+# may not have a good .env file available.
+# we're going to ignore what's set in the alembic ini then check the following
+# in decreasing order of precedence:
+# - an environment variable named "DB_URL"
+# - the project .env file for a key of "DB_URL"
+# We'll consider one of those to be required and will error out if not found.
+
+db_url = os.getenv("DB_URL")
+
+if db_url is None:
+    # TODO: we also specify a log level in that config. we *could* use that here,
+    #       but for now we're going to respect what's in the alembic ini since the
+    #       logging here is for a different purpose than the logging in the db app's
+    #       setup
+    proj_config = dotenv_values(os.path.join(proj_root, ".env"))
+    db_url = proj_config.get("DB_URL")
+
+if db_url is None:
+    print(
+        "No DB_URL configured in environment variable or project level .env "
+        "file. Cannot continue."
+    )
+    # if we don't have this we have problems. so we are bailing
+    sys.exit(1)
+
+
+config.set_main_option("sqlalchemy.url", db_url)
 
 
 # other values from the config, defined by the needs of env.py,

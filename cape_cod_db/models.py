@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, SQLModel
 
 # NOTE: For now we're going to keep all models in one module. Should this get
 #       painful we will look at splitting this out. Both ways of doing models
@@ -13,11 +13,13 @@ class CapeModel(SQLModel):
     Contains fields that all CAPE tables should support.
     """
 
-    created_at: datetime = Field(default=datetime.utcnow(), nullable=False)
+    created_at: datetime = Field(
+        default=datetime.now(timezone.utc), nullable=False
+    )
     last_edited: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=lambda: datetime.now(timezone.utc),
         nullable=False,
-        sa_column_kwargs={"onupdate": lambda: datetime.utcnow()},
+        sa_column_kwargs={"onupdate": lambda: datetime.now(timezone.utc)},
     )
 
 

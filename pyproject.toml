@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "cape_cod_db"
+version = "0.1.0"
+description = "SQLModel definition of the CAPE environment database."
+authors = ["L. Drew Pihera <drew.pihera@gtri.gatech.edu>"]
+license = "Apache-2.0"
+readme = "README.md"
+packages = [{ include = "cape_cod_db" }]
+include = ["app.py", "capedb.py", "alembic", "alembic.ini"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.dev.dependencies]
+alembic = "^1.18.4"
+python-dotenv = "^1.2.1"
+psycopg2-binary = "^2.9.11"
+sqlmodel = "^0.0.37"
+
+[tool.poetry.scripts]
+capedb = "capedb:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+force-exclude = "alembic"
+line-length = 80
+
+[tool.isort]
+profile = "black"
+extend_skip = ["alembic"]
+
+line_length = 80
+
+[tool.ruff]
+line-length = 80

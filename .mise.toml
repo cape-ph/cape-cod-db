@@ -1,5 +1,7 @@
 [env]
-_.python.venv = { path = "venv", create = false }
+_.python.venv = { path = ".venv", create = false }
 
 [tools]
 python = "3.10"
+poetry = { version = "2.3", pyproject = "pyproject.toml" }
+pre-commit = "3"

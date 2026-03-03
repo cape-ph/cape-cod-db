@@ -3,6 +3,4 @@
 extend-exclude = ["roles/*/files"]
 
 [default.extend-words]
-ser = "ser"
-ue = "ue"
-ot = "ot"
+Furst = "Furst"
