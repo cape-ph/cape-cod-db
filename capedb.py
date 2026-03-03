@@ -3,7 +3,7 @@ from alembic.config import CommandLine, Config
 
 
 def current(config: Config, verbose=False) -> None:
-    """Displays the currrent version of the database with optional verbosity.
+    """Displays the current version of the database with optional verbosity.
 
     Args:
         verbose: True for verbose output, else False. Defaults to `False`.
