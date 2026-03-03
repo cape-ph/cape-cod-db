@@ -7,7 +7,9 @@ config = dotenv_values(".env")
 
 logging.basicConfig()
 logger = logging.getLogger("sqlalchemy.engine")
-logger.setLevel(logging.getLevelName(config.get("LOG_LEVEL", logging.INFO)))
+log_level = config.get("LOG_LEVEL", logging.INFO)
+assert log_level is not None, "Log level should not be None"
+logger.setLevel(log_level)
 
 
 db_url = config.get("DB_URL", None)
