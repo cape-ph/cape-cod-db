@@ -61,7 +61,6 @@ if db_url is None:
     # if we don't have this we have problems. so we are bailing
     sys.exit(1)
 
-print(f"Configured Database URL: {db_url}")
 
 config.set_main_option("sqlalchemy.url", db_url)
 
