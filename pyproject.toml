@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "cape_cod_db"
+name = "cape-cod-db"
 version = "0.1.0"
 description = "SQLModel definition of the CAPE environment database."
 authors = ["L. Drew Pihera <drew.pihera@gtri.gatech.edu>"]
