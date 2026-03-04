@@ -3,20 +3,21 @@ import logging
 from dotenv import dotenv_values
 from sqlmodel import SQLModel, create_engine
 
-config = dotenv_values(".env")
+from .alembic.env import config
 
 logging.basicConfig()
 logger = logging.getLogger("sqlalchemy.engine")
-log_level = config.get("LOG_LEVEL", logging.INFO)
-assert log_level is not None, "Log level should not be None"
-logger.setLevel(log_level)
 
-
-db_url = config.get("DB_URL", None)
+db_url = config.get_main_option("sqlalchemy.url")
 
 if db_url is None:
-    logger.error("DB_URL is not configured")
+    logger.error(
+        "DB_URL is not configuredd. This needs to be in the alembic config "
+        "file or an environment variable named `DB_URL`"
+    )
     exit(1)
+
+logger.info(f"Configured for database: {db_url}")
 
 engine = create_engine(db_url)
 
