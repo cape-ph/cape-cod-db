@@ -11,8 +11,6 @@ from alembic import context
 # NOTE: as new table models are added, they need to be imported here.
 from cape_cod_db.models import User
 
-logging.basicConfig()
-logger = logging.getLogger("sqlalchemy.engine")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -22,6 +20,8 @@ config = context.config
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+logger = logging.getLogger("sqlalchemy.engine")
 
 # add your model's MetaData object here
 # for 'autogenerate' support
