@@ -1,9 +1,8 @@
 import logging
 
-from dotenv import dotenv_values
 from sqlmodel import SQLModel, create_engine
 
-from .alembic.env import config
+from .migrations.env import config
 
 logging.basicConfig()
 logger = logging.getLogger("sqlalchemy.engine")
@@ -12,7 +11,7 @@ db_url = config.get_main_option("sqlalchemy.url")
 
 if db_url is None:
     logger.error(
-        "DB_URL is not configuredd. This needs to be in the alembic config "
+        "DB_URL is not configured. This needs to be in the alembic config "
         "file or an environment variable named `DB_URL`"
     )
     exit(1)
