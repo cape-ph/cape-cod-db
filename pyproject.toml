@@ -22,7 +22,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
-force-exclude = "alembic"
+force-exclude = "cape_cod_db/migrations"
 line-length = 80
 
 [tool.isort]
