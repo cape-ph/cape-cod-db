@@ -73,18 +73,15 @@ requirements are as follows:
 
 ### Setup DB
 
-Make sure the env file contains a valid DB_URL for your setup. If you're
-following this setup exactly, the value is already correct
-(`DB_URL="postgresql:///cape_env_db"`).
-
-**_NOTE:_** You can also specify this in an environment variable name `DB_URL`.
-This is intended more for automation use cases where the installation of the
-package is less controllable.
-
 This package provides the `capedb` script to handle DB upgrades, downgrades and
 checking of current version. All other `alembic` commands (including upgrades,
 downgrades and checking of current version) can be accomplished via normal
 `alembic` means.
+
+**_NOTE:_** At this point we expect an empty databse to exist before we apply
+migrations or create tables. This could change in the future, but for now it's a
+requirement. If you followed the postgres setup above you have already done
+this.
 
 #### Alembic Config
 
@@ -187,7 +184,7 @@ with Session(db.engine) as session:
 If you prefer `psql` (**_NOTE:_** this assumes you have all the perms on the
 db):
 
-```sql
+```bash
 12:12 $ psql cape_env_db
 
 
