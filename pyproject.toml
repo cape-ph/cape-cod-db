@@ -27,7 +27,7 @@ line-length = 80
 
 [tool.isort]
 profile = "black"
-extend_skip = ["alembic"]
+extend_skip = ["cape_cod_db/migrations"]
 
 line_length = 80
 
