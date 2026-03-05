@@ -1,14 +1,14 @@
-from cape_cod_db.database import create_db_and_tables
+from cape_cod_db.database import create_tables
 from cape_cod_db.models import User
 
-# NOTE: if we need to create fixtures in code, do that here. add functions for
-#       each fixture set and call them in main after creating the tables. if we
-#       end up providing dumps of fixtures instead, we don't need to add code,
-#       just import the dumps (probably)
+# WARNING: Usage of this script only applies the most recent schema, with 0
+#          respect to migrations and without including any migration tables or
+#          history. If migrations are desired (probable) use `capedb.py`
+#          instead.
 
 
 def main():
-    create_db_and_tables()
+    create_tables()
 
 
 if __name__ == "__main__":
