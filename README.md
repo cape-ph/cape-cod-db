@@ -78,7 +78,7 @@ checking of current version. All other `alembic` commands (including upgrades,
 downgrades and checking of current version) can be accomplished via normal
 `alembic` means.
 
-**_NOTE:_** At this point we expect an empty databse to exist before we apply
+**_NOTE:_** At this point we expect an empty database to exist before we apply
 migrations or create tables. This could change in the future, but for now it's a
 requirement. If you followed the postgres setup above you have already done
 this.
