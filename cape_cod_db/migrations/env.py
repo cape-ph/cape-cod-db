@@ -1,19 +1,10 @@
+import logging
 import os
-import sys
-
-# so that alembic has access to our models, we're adding the project root here
-proj_root = os.path.realpath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.insert(0, proj_root)
-
-print(sys.path)
-
 from logging.config import fileConfig
 
-from dotenv import dotenv_values
+from alembic import context
 from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
-
-from alembic import context
 
 # NOTE: as new table models are added, they need to be imported here.
 from cape_cod_db.models import User
@@ -27,6 +18,8 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+logger = logging.getLogger("alembic.env")
+
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
@@ -34,36 +27,29 @@ if config.config_file_name is not None:
 target_metadata = SQLModel.metadata
 
 
-# cape_cod_db has its own config file and which contains database url.
-# Additionally for migrations we're running from an ephemeral virtualenv that
-# may not have a good .env file available.
-# we're going to ignore what's set in the alembic ini then check the following
-# in decreasing order of precedence:
-# - an environment variable named "DB_URL"
-# - the project .env file for a key of "DB_URL"
-# We'll consider one of those to be required and will error out if not found.
+# we have 3 ways to specify the database url (higher in list is higher
+# precedence):
+# - command line parameter `db_url`
+# - env var `DB_URL`
+# - alembic config file value `sqlalchemy.url`
 
-db_url = os.getenv("DB_URL")
+cli_args = context.get_x_argument(as_dictionary=True)
 
+# first try a cli arg
+db_url = cli_args.get("db_url", None)
+
+# then an env var
 if db_url is None:
-    # TODO: we also specify a log level in that config. we *could* use that here,
-    #       but for now we're going to respect what's in the alembic ini since the
-    #       logging here is for a different purpose than the logging in the db app's
-    #       setup
-    proj_config = dotenv_values(os.path.join(proj_root, ".env"))
-    db_url = proj_config.get("DB_URL")
+    db_url = os.getenv("DB_URL")
 
-if db_url is None:
-    print(
-        "No DB_URL configured in environment variable or project level .env "
-        "file. Cannot continue."
-    )
-    # if we don't have this we have problems. so we are bailing
-    sys.exit(1)
+# we've already got the file config, so if db_url is not None by here, overwrite
+# the file config value
+if db_url is not None:
+    config.set_main_option("sqlalchemy.url", db_url)
 
-
-config.set_main_option("sqlalchemy.url", db_url)
-
+logging.info(
+    f"Configured for database: {config.get_main_option('sqlalchemy.url')}"
+)
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

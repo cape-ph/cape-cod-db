@@ -6,31 +6,28 @@ authors = ["L. Drew Pihera <drew.pihera@gtri.gatech.edu>"]
 license = "Apache-2.0"
 readme = "README.md"
 packages = [{ include = "cape_cod_db" }]
-include = ["app.py", "capedb.py", "alembic", "alembic.ini"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-
-[tool.poetry.group.dev.dependencies]
 alembic = "^1.18.4"
-python-dotenv = "^1.2.1"
 psycopg2-binary = "^2.9.11"
 sqlmodel = "^0.0.37"
 
 [tool.poetry.scripts]
-capedb = "capedb:main"
+capedb = "cape_cod_db.cli.capedb:main"
+capedb-app = "cape_cod_db.cli.app:main"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
-force-exclude = "alembic"
+force-exclude = "cape_cod_db/migrations"
 line-length = 80
 
 [tool.isort]
 profile = "black"
-extend_skip = ["alembic"]
+extend_skip = ["cape_cod_db/migrations"]
 
 line_length = 80
 
