@@ -7,11 +7,10 @@ Create Date: 2026-06-25 11:10:27.936819
 """
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
-
 import sqlmodel
+from alembic import op
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = '6919c61ea401'
@@ -55,7 +54,7 @@ def upgrade() -> None:
     with op.batch_alter_table('resource', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_resource_resource_identifier'), ['resource_identifier'], unique=True)
         batch_op.create_index(batch_op.f('ix_resource_resource_type'), ['resource_type'], unique=False)
-    
+
     # Add GIN index for JSONB attributes column on resource table
     op.create_index(
         'ix_resource_attributes',
@@ -105,16 +104,16 @@ def downgrade() -> None:
     with op.batch_alter_table('usertributary', schema=None) as batch_op:
         batch_op.drop_index('ix_usertributary_tributary_id')
         batch_op.drop_index('ix_usertributary_user_id')
-    
+
     op.drop_table('usertributary')
     with op.batch_alter_table('userattribute', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_userattribute_user_id'))
 
     op.drop_table('userattribute')
-    
+
     # Drop GIN index on resource attributes
     op.drop_index('ix_resource_attributes', table_name='resource')
-    
+
     with op.batch_alter_table('resource', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_resource_resource_type'))
         batch_op.drop_index(batch_op.f('ix_resource_resource_identifier'))

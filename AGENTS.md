@@ -50,7 +50,7 @@ Before marking work as complete, verify:
   source .env && capedb -c cape_cod_db/alembic.ini -x db_url="$DB_URL" current --verbose
   source .env && capedb -c cape_cod_db/alembic.ini -x db_url="$DB_URL" upgrade head
   source .env && capedb -c cape_cod_db/alembic.ini -x db_url="$DB_URL" downgrade -1
-  
+
   # Or use alembic directly
   alembic -c cape_cod_db/alembic.ini revision --autogenerate -m "description"
   ```

@@ -23,7 +23,7 @@ BEGIN;
 -- Count before deletion (for verification)
 \echo ''
 \echo '=== Before Cleanup ==='
-SELECT 
+SELECT
     (SELECT COUNT(*) FROM "user") as users,
     (SELECT COUNT(*) FROM tributary) as tributaries,
     (SELECT COUNT(*) FROM usertributary) as memberships,
@@ -66,7 +66,7 @@ COMMIT;
 -- Verification after deletion
 \echo ''
 \echo '=== After Cleanup ==='
-SELECT 
+SELECT
     (SELECT COUNT(*) FROM "user") as users,
     (SELECT COUNT(*) FROM tributary) as tributaries,
     (SELECT COUNT(*) FROM usertributary) as memberships,

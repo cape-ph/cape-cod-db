@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 
-from sqlmodel import Field, SQLModel, Column
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import Text
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlmodel import Column, Field, SQLModel
 
 # NOTE: For now we're going to keep all models in one module. Should this get
 #       painful we will look at splitting this out. Both ways of doing models
@@ -72,7 +72,7 @@ class Tributary(CapeModel, table=True):
     parent_id: int | None = Field(default=None, foreign_key="tributary.id")
     attributes: dict = Field(
         default_factory=dict,
-        sa_column=Column(JSONB, nullable=False, server_default='{}')
+        sa_column=Column(JSONB, nullable=False, server_default="{}"),
     )
 
 
@@ -89,18 +89,11 @@ class UserTributary(SQLModel, table=True):
     - "viewer": Read-only access
     """
 
-    user_id: int = Field(
-        foreign_key="user.id",
-        primary_key=True
-    )
-    tributary_id: int = Field(
-        foreign_key="tributary.id",
-        primary_key=True
-    )
+    user_id: int = Field(foreign_key="user.id", primary_key=True)
+    tributary_id: int = Field(foreign_key="tributary.id", primary_key=True)
     role: str = Field(default="member")
     granted_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        nullable=False
+        default_factory=lambda: datetime.now(timezone.utc), nullable=False
     )
     granted_by: int | None = Field(default=None, foreign_key="user.id")
     expires_at: datetime | None = None
@@ -131,7 +124,7 @@ class Resource(CapeModel, table=True):
     access_type: str
     attributes: dict = Field(
         default_factory=dict,
-        sa_column=Column(JSONB, nullable=False, server_default='{}')
+        sa_column=Column(JSONB, nullable=False, server_default="{}"),
     )
 
 
@@ -150,10 +143,7 @@ class UserAttribute(CapeModel, table=True):
     """
 
     id: int | None = Field(default=None, primary_key=True)
-    user_id: int = Field(
-        foreign_key="user.id",
-        index=True
-    )
+    user_id: int = Field(foreign_key="user.id", index=True)
     attribute_key: str
     attribute_value: str
     source: str | None = None

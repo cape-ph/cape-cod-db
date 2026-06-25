@@ -1,5 +1,5 @@
 -- Test Data for CAPE Authorization System
--- 
+--
 -- PURPOSE: Provides realistic test data for development and testing.
 --          Includes users, tributaries, memberships, resources, and attributes.
 --
@@ -48,7 +48,7 @@ INSERT INTO tributary (created_at, last_edited, name, code, description, parent_
 
 -- Insert Platform Engineering as child of Engineering (requires Engineering's ID)
 INSERT INTO tributary (created_at, last_edited, name, code, description, parent_id, attributes)
-SELECT NOW(), NOW(), 'Platform Engineering', 'PLAT-ENG', 'Platform and DevOps team', 
+SELECT NOW(), NOW(), 'Platform Engineering', 'PLAT-ENG', 'Platform and DevOps team',
        t.id, '{"department": "technology", "cost_center": "plat-001"}'::jsonb
 FROM tributary t WHERE t.code = 'ENG';
 
@@ -120,7 +120,7 @@ WHERE u.email = 'charlie.operator@example.com' AND t.code = 'OPS';
 INSERT INTO usertributary (user_id, tributary_id, role, granted_at, granted_by, expires_at)
 SELECT diana.id, eng.id, 'member', NOW(), alice.id, NULL::timestamp
 FROM "user" diana, "user" alice, tributary eng
-WHERE diana.email = 'diana.multirole@example.com' 
+WHERE diana.email = 'diana.multirole@example.com'
   AND alice.email = 'alice.engineer@example.com'
   AND eng.code = 'ENG'
 UNION ALL
@@ -192,7 +192,7 @@ SELECT id, code, name, parent_id, description FROM tributary ORDER BY id;
 
 \echo ''
 \echo 'User Memberships:'
-SELECT 
+SELECT
     u.id as user_id,
     u.first_name || ' ' || u.last_name as user_name,
     t.code as tributary,
@@ -205,7 +205,7 @@ ORDER BY u.id, t.id;
 
 \echo ''
 \echo 'User Attributes:'
-SELECT 
+SELECT
     u.id as user_id,
     u.first_name || ' ' || u.last_name as user_name,
     ua.attribute_key,
@@ -217,7 +217,7 @@ ORDER BY u.id, ua.attribute_key;
 
 \echo ''
 \echo 'Resources (first 10):'
-SELECT 
+SELECT
     r.id,
     r.resource_type,
     r.resource_identifier,
@@ -230,14 +230,14 @@ LIMIT 10;
 
 \echo ''
 \echo 'Resource count by type:'
-SELECT resource_type, COUNT(*) as count 
-FROM resource 
-GROUP BY resource_type 
+SELECT resource_type, COUNT(*) as count
+FROM resource
+GROUP BY resource_type
 ORDER BY resource_type;
 
 \echo ''
 \echo '=== Test Data Summary ==='
-SELECT 
+SELECT
     (SELECT COUNT(*) FROM "user") as users,
     (SELECT COUNT(*) FROM tributary) as tributaries,
     (SELECT COUNT(*) FROM usertributary) as memberships,
