@@ -1,6 +1,40 @@
 # CAPE Environment Database Repo
 
-**_TBD_** blah blah repo for the main cape environment database
+Repo for the CAPE environment database. This is the main database used by
+various resources in CAPE for tracking users, user attributes, and AWS resource
+data.
+
+## Schema Overview
+
+### Authorization Model
+
+The database implements an Attribute-Based Access Control (ABAC) system with the
+following components:
+
+- **User**: Core user identity (from Cognito)
+- **Tributary**: Logical data compartments with associated AWS resources
+- **UserTributary**: Many-to-many junction between users and tributaries
+- **Resource**: Platform-agnostic resource definitions (S3 paths, EC2 instances,
+  etc.) linked to tributaries
+- **UserAttribute**: Key-value attributes for users (e.g., `user_status`,
+  `role`, `department`)
+
+#### Key Relationships
+
+- Users belong to multiple tributaries (via `UserTributary`)
+- Each tributary has multiple resources (via `Resource.tributary_id`)
+- Resources define access patterns: `s3_read`, `s3_write`, `ec2_connect`, etc.
+- User attributes handle non-tributary authorization (quarantine, admin roles,
+  suspension)
+
+#### Standard Resource Pattern
+
+Each tributary typically has 4 S3 bucket resources:
+
+- `raw_uploads` (write access)
+- `clean_uploads` (read access)
+- `raw_results` (write access)
+- `clean_results` (read access)
 
 ## Setup
 
@@ -135,6 +169,24 @@ ever.
 This script requires the `DB_URL` environment variable be set and does not work
 with alembic at all, so the alembic config is not needed.
 
+### Test Data
+
+Test data fixtures are provided in `fixtures/test/`:
+
+- `test_data.sql`: Loads 6 users, 4 tributaries, 12 resources, 9 user attributes
+- `cleanup_test_data.sql`: Removes test data in proper dependency order
+
+```bash
+# Load test data (use transaction to allow rollback)
+source .env && psql "$DB_URL" -f fixtures/test/test_data.sql
+
+# Clean up test data
+source .env && psql "$DB_URL" -f fixtures/test/cleanup_test_data.sql
+```
+
+**Important**: When modifying schema or test data, keep both SQL files
+synchronized with changes.
+
 ### Play With The DB
 
 From repo root in the python repl of your fancy (that has all the dependencies
@@ -179,6 +231,26 @@ with Session(db.engine) as session:
 
     for u in res.all():
         print(u)
+
+# query authorization data
+with Session(db.engine) as session:
+    # get user's tributaries
+    user = session.exec(select(models.User).where(models.User.email == "alice@example.com")).first()
+    tributaries = session.exec(
+        select(models.Tributary)
+        .join(models.UserTributary)
+        .where(models.UserTributary.user_id == user.id)
+    ).all()
+
+    # get resources for a tributary
+    resources = session.exec(
+        select(models.Resource).where(models.Resource.tributary_id == tributaries[0].id)
+    ).all()
+
+    # get user attributes
+    attrs = session.exec(
+        select(models.UserAttribute).where(models.UserAttribute.user_id == user.id)
+    ).all()
 ```
 
 If you prefer `psql` (**_NOTE:_** this assumes you have all the perms on the

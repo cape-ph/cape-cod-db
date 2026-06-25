@@ -1,5 +1,5 @@
 {
     "autoImportCompletions": true,
     "typeCheckingMode": "basic",
-    "ignore": ["cape_cod_db/migrations/**"]
+    "ignore": ["cape_cod_db/migrations/**", "dist/**"]
 }

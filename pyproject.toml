@@ -33,3 +33,12 @@ line_length = 80
 
 [tool.ruff]
 line-length = 80
+extend-exclude = ["cape_cod_db/migrations"]
+
+[dependency-groups]
+dev = [
+    "ruff (>=0.15.19,<0.16.0)",
+    "pyright (>=1.1.411,<2.0.0)",
+    "black (>=26.5.1,<27.0.0)",
+    "isort (>=8.0.1,<9.0.0)"
+]

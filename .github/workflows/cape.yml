@@ -24,7 +24,7 @@ jobs:
         name: General
         uses: cape-ph/.github/.github/workflows/general_checks.yml@v1
     publish:
-        name: Publsih to PyPI
+        name: Publish to PyPI
         needs: python
         runs-on: ubuntu-latest
         if: ${{ github.event_name == 'release' }}

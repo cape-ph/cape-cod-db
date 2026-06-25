@@ -164,3 +164,6 @@ cython_debug/
 # sqlite db
 *.db
 *.sqlite
+
+# Cross-repo implementation plans (not committed)
+.design/
