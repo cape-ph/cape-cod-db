@@ -14,7 +14,7 @@ try:
     # some other source for the DB  URL as the config object doesn't exit in
     # env.py. alembic doesn't play when we're just doing orm things.
     db_url = config.get_main_option("sqlalchemy.url")
-except AttributeError as ae:
+except AttributeError:
     logging.basicConfig()
     logger = logging.getLogger(__file__)
     logger.warning(
