@@ -7,7 +7,7 @@ from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
 
 # NOTE: as new table models are added, they need to be imported here.
-from cape_cod_db.models import User
+from cape_cod_db.models import User, Tributary, UserTributary, Resource, UserAttribute
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
