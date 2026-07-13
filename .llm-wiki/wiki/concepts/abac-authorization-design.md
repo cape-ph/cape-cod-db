@@ -31,13 +31,13 @@ users first; SAML-federated external users later.
 ## Current state (as coded)
 
 - Authorization facts are the tables in [[entities/database-schema]]:
-  membership/role in `UserTributary`, resource catalog in `Resource`, and
-  per-user flags in `UserAttribute`.
-- `Resource` carries a single `access_type` and `resource_identifier` is
-  globally unique. That means a resource has ONE access value for everyone;
-  there is no per-(user, resource, action) grant in the schema today.
-- There is no OPA integration code, no bundle generator, and no sync script in
-  this repo.
+  membership/role in `UserTributary`, resource catalog in `Resource`, per-user
+  flags in `UserAttribute`, and explicit grants in `ResourceGrant`.
+- `Resource` is now a pure catalog: the old `access_type` column was dropped
+  (migration `010c0bff0b83`). WHO can do WHAT lives in `ResourceGrant` (one row
+  per subject/resource/action) plus role-based tributary defaults.
+- There is still no OPA integration code, bundle generator, or sync script in
+  this repo; those live in `cape-cod` / `cape-cod-env`.
 
 ## Confirmed design decisions (still in force)
 
@@ -66,46 +66,39 @@ row and become a relationship between a subject (user or tributary) and a
 resource, per action. `Resource` becomes a pure catalog; WHO can do WHAT lives
 in memberships (broad role-based defaults) plus an explicit grant table.
 
-## Planned rework (not yet in code)
+## Implemented rework
 
-Direction under consideration (names/constraints to be confirmed before
-implementing):
+Delivered in migration `010c0bff0b83` ("abac per-subject resource grants") with
+the confirmed decisions below:
 
-- Keep `User`, `Tributary`, `UserTributary`, `UserAttribute` as-is.
-- Adjust `Resource` into a pure catalog: either drop `access_type` and derive
-  the default from `attributes.category` in policy, or repurpose it as a
-  nullable `default_access`.
-- Add a grant table (working name `ResourceGrant`) with a subject that is
-  exactly one of `user_id` / `tributary_id` (CHECK constraint), a `resource_id`
-  (FK `ON DELETE CASCADE`), an `access_type` (one action per row), plus
-  `granted_by` and `expires_at`; UNIQUE on
-  `(user_id, tributary_id, resource_id, access_type)`.
-- Effective access (evaluated in Rego, not stored) is default-deny, allow if
-  guards pass and any grant path matches: explicit user grant, explicit
-  tributary grant, or role-based default from membership + `category`.
-  User-status guards (`quarantine`/`suspended`/`deactivated`) block; a global
-  `is_admin` may short-circuit to allow. Deny-grants are out of scope for MVP.
+- `User`, `Tributary`, `UserTributary`, `UserAttribute` kept as-is.
+- `Resource.access_type` dropped; `Resource` is a pure catalog and the default
+  action is derived from `attributes.category` in policy (D3).
+- Added `ResourceGrant`:
+  - Subject is exactly one of `user_id` / `tributary_id`, enforced by CHECK
+      `ck_resourcegrant_exactly_one_subject` (D2). Both user- and
+      tributary-level grants are supported.
+  - `resource_id` FK `ON DELETE CASCADE`; `user_id` / `tributary_id` FKs also
+      `ON DELETE CASCADE`.
+  - One action per row via `access_type` (D1); plus `granted_by` and
+      `expires_at`.
+  - UNIQUE `uq_resourcegrant_subject_resource_access` on
+      `(user_id, tributary_id, resource_id, access_type)` with
+      `NULLS NOT DISTINCT` so tributary grants (user_id NULL) cannot duplicate.
+  - Table name is `ResourceGrant` (D4).
 
-Open decisions to confirm at implementation time include grant action
-cardinality (one row per action vs a combined value), whether to support both
-user- and tributary-level grants initially, whether to drop or keep
-`Resource.access_type`, the grant table name, the role-to-action and
-category-to-action mappings, and the canonical `resource_type` string.
+Role/category mapping accepted as-is (D5): `raw_uploads` / `raw_results` ->
+write, `clean_uploads` / `clean_results` -> read; on owned resources admin ->
+read+write, member -> write raw / read clean, viewer -> read only. Canonical
+`resource_type` for S3 is `"s3"` (D6). MVP is allow-only with default-deny;
+deny-grants are out of scope (D7).
 
-## Rework checklist (when it happens)
-
-1. Edit `models.py`; register any new model in `migrations/env.py`.
-2. Autogenerate a migration and hand-review it (verify the CHECK, composite
-   UNIQUE, CASCADE, and any `access_type` drop/rename; autogenerate will not
-   infer a rename). Also preserve the existing cascades/unique constraint that
-   the models currently under-declare - see the drift note in
-   [[entities/database-schema]].
-3. Provide a working `downgrade()`.
-4. Update `fixtures/test/test_data.sql` and `cleanup_test_data.sql` to express
-   grants instead of a per-resource `access_type`; keep verification queries in
-   sync. See [[entities/test-fixtures]].
-5. Run `ruff` and `pyright`; update `CHANGELOG.md`; a schema change is a minor
-   version bump that `cape-cod-env` must pin. See [[concepts/release-and-ci]].
+Effective access (evaluated in Rego, not stored) is default-deny, allow if
+guards pass and any grant path matches: explicit user grant, explicit tributary
+grant, or role-based default from membership + `category`. User-status guards
+(`quarantine`/`suspended`/`deactivated`) block; a global `is_admin` may
+short-circuit to allow. Policy, bundle generation, and sync remain in the other
+repos.
 
 ## Related pages
 

@@ -1,8 +1,16 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Text
+from sqlalchemy import (
+    CheckConstraint,
+    Column,
+    ForeignKey,
+    Index,
+    Integer,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlmodel import Column, Field, SQLModel
+from sqlmodel import Field, SQLModel
 
 # NOTE: For now we're going to keep all models in one module. Should this get
 #       painful we will look at splitting this out. Both ways of doing models
@@ -89,8 +97,22 @@ class UserTributary(SQLModel, table=True):
     - "viewer": Read-only access
     """
 
-    user_id: int = Field(foreign_key="user.id", primary_key=True)
-    tributary_id: int = Field(foreign_key="tributary.id", primary_key=True)
+    user_id: int = Field(
+        sa_column=Column(
+            Integer,
+            ForeignKey("user.id", ondelete="CASCADE"),
+            primary_key=True,
+            index=True,
+        )
+    )
+    tributary_id: int = Field(
+        sa_column=Column(
+            Integer,
+            ForeignKey("tributary.id", ondelete="CASCADE"),
+            primary_key=True,
+            index=True,
+        )
+    )
     role: str = Field(default="member")
     granted_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc), nullable=False
@@ -106,6 +128,10 @@ class Resource(CapeModel, table=True):
     Lambda, Glue, etc.) and non-AWS resources (applications, databases).
     Uses JSONB attributes for resource-specific fields.
 
+    This table is a pure catalog of authorizable things. Who may perform which
+    action on a resource is expressed by ResourceGrant rows plus role-based
+    tributary defaults, not by a column on this row.
+
     Examples:
     - S3: resource_identifier="s3://bucket/path",
           attributes={"bucket": "cape-datalake", "path_prefix": "eng/uploads/",
@@ -116,12 +142,20 @@ class Resource(CapeModel, table=True):
            attributes={"url": "https://app.example.com", "environment": "prod"}
     """
 
+    __table_args__ = (
+        Index(
+            "ix_resource_attributes",
+            "attributes",
+            postgresql_using="gin",
+            postgresql_ops={"attributes": "jsonb_path_ops"},
+        ),
+    )
+
     id: int | None = Field(default=None, primary_key=True)
     resource_type: str = Field(index=True)
     resource_identifier: str = Field(unique=True, index=True)
     display_name: str
     tributary_id: int | None = Field(default=None, foreign_key="tributary.id")
-    access_type: str
     attributes: dict = Field(
         default_factory=dict,
         sa_column=Column(JSONB, nullable=False, server_default="{}"),
@@ -142,8 +176,89 @@ class UserAttribute(CapeModel, table=True):
     specific workflows determine which attributes to use.
     """
 
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "attribute_key",
+            name="uq_userattribute_user_id_attribute_key",
+        ),
+    )
+
     id: int | None = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id", index=True)
+    user_id: int = Field(
+        sa_column=Column(
+            Integer,
+            ForeignKey("user.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        )
+    )
     attribute_key: str
     attribute_value: str
     source: str | None = None
+
+
+class ResourceGrant(CapeModel, table=True):
+    """Per-subject, per-resource, per-action authorization grant.
+
+    The explicit assignment mechanism for ABAC. Effective access for a
+    (user, action, resource) is the UNION of role-based tributary defaults and
+    the grants recorded here, evaluated default-deny in policy (OPA/Rego).
+
+    Subject: exactly one of ``user_id`` or ``tributary_id`` is set (enforced by
+    a CHECK constraint).
+    - ``user_id`` grants to a specific user.
+    - ``tributary_id`` grants to every member of a tributary (avoids per-user
+      row explosion).
+
+    One action per row (``access_type``, e.g. "read" or "write") keeps the OPA
+    bundle data flat; use two rows for read+write. The unique constraint uses
+    NULLS NOT DISTINCT so a tributary grant (with ``user_id`` NULL) still cannot
+    be duplicated.
+    """
+
+    __table_args__ = (
+        CheckConstraint(
+            "(user_id IS NOT NULL) <> (tributary_id IS NOT NULL)",
+            name="ck_resourcegrant_exactly_one_subject",
+        ),
+        UniqueConstraint(
+            "user_id",
+            "tributary_id",
+            "resource_id",
+            "access_type",
+            name="uq_resourcegrant_subject_resource_access",
+            postgresql_nulls_not_distinct=True,
+        ),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int | None = Field(
+        default=None,
+        sa_column=Column(
+            Integer,
+            ForeignKey("user.id", ondelete="CASCADE"),
+            nullable=True,
+            index=True,
+        ),
+    )
+    tributary_id: int | None = Field(
+        default=None,
+        sa_column=Column(
+            Integer,
+            ForeignKey("tributary.id", ondelete="CASCADE"),
+            nullable=True,
+            index=True,
+        ),
+    )
+    resource_id: int = Field(
+        sa_column=Column(
+            Integer,
+            ForeignKey("resource.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        )
+    )
+    access_type: str
+    granted_by: int | None = Field(default=None, foreign_key="user.id")
+    expires_at: datetime | None = None

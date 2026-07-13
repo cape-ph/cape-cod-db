@@ -20,7 +20,10 @@ most of which reuse shared workflows from the `cape-ph/.github` repo.
   `release-type: python`.
 - `is_production` is true only on push to `main`.
 - Implies Conventional Commits drive version bumps and `CHANGELOG.md` entries.
-  The current `CHANGELOG.md` reflects release `0.3.0`.
+  Per the maintainer, release-please performs the version bump and CHANGELOG
+  generation. Do NOT hand-edit `CHANGELOG.md` or the version in `pyproject.toml`
+  when working in this repo - CI owns both. The current `CHANGELOG.md` reflects
+  release `0.3.0`.
 
 ## cape.yml (CAPE)
 
@@ -37,14 +40,14 @@ most of which reuse shared workflows from the `cape-ph/.github` repo.
 ## Release flow summary
 
 1. Merge Conventional-Commit changes to `main`.
-2. semantic-release computes the next version, updates `CHANGELOG.md`, and
-   creates a GitHub release/tag.
+2. release-please computes the next version, updates `CHANGELOG.md`, and creates
+   a GitHub release/tag (do not do these by hand).
 3. The release event triggers the `publish` job, which builds and uploads the
    wheel/sdist to PyPI.
 
-A schema change (for example the planned ABAC rework) warrants a minor version
-bump; downstream consumers such as `cape-cod-env` must then pin the new version.
-See [[concepts/abac-authorization-design]].
+A schema change (for example the ABAC rework) is a minor version bump;
+downstream consumers such as `cape-cod-env` must then pin the new version. See
+[[concepts/abac-authorization-design]].
 
 ## Related pages
 
