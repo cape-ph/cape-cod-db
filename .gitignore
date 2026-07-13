@@ -167,3 +167,9 @@ cython_debug/
 
 # Cross-repo implementation plans (not committed)
 .design/
+
+# pi-llm-wiki: keep authored knowledge, drop generated + immutable layers
+.llm-wiki/meta/
+.llm-wiki/raw/
+.llm-wiki/outputs/
+.llm-wiki/.discoveries/
