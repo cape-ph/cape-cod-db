@@ -1,4 +1,4 @@
-exclude: ^notes/
+exclude: ^\.llm-wiki/
 
 repos:
     - repo: https://github.com/pre-commit/pre-commit-hooks

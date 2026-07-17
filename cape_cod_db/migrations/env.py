@@ -7,8 +7,11 @@ from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
 
 # NOTE: as new table models are added, they need to be imported here.
-from cape_cod_db.models import (
+# These imports register the models on SQLModel.metadata so Alembic
+# autogenerate can see them; they are intentionally "unused".
+from cape_cod_db.models import (  # noqa: F401
     Resource,
+    ResourceGrant,
     Tributary,
     User,
     UserAttribute,

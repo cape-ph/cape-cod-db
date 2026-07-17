@@ -53,49 +53,85 @@ SELECT NOW(), NOW(), 'Platform Engineering', 'PLAT-ENG', 'Platform and DevOps te
 FROM tributary t WHERE t.code = 'ENG';
 
 -- Insert S3 resources (demonstrates 4-bucket pattern for ENG, varied for others)
+-- NOTE: resource is a pure catalog; access is expressed by resourcegrant rows
+--       (below) plus role-based tributary defaults, not by a column here.
 -- Engineering: All 4 standard buckets
-INSERT INTO resource (created_at, last_edited, resource_type, resource_identifier, display_name, tributary_id, access_type, attributes)
-SELECT NOW(), NOW(), 's3', 's3://cape-datalake/eng/raw-uploads/', 'Engineering Raw Data Uploads', t.id, 'write', '{"bucket": "cape-datalake", "path_prefix": "eng/raw-uploads/", "category": "raw_uploads"}'::jsonb
+INSERT INTO resource (created_at, last_edited, resource_type, resource_identifier, display_name, tributary_id, attributes)
+SELECT NOW(), NOW(), 's3', 's3://cape-datalake/eng/raw-uploads/', 'Engineering Raw Data Uploads', t.id, '{"bucket": "cape-datalake", "path_prefix": "eng/raw-uploads/", "category": "raw_uploads"}'::jsonb
 FROM tributary t WHERE t.code = 'ENG'
 UNION ALL
-SELECT NOW(), NOW(), 's3', 's3://cape-datalake/eng/clean-uploads/', 'Engineering Cleaned Upload Data', t.id, 'read', '{"bucket": "cape-datalake", "path_prefix": "eng/clean-uploads/", "category": "clean_uploads"}'::jsonb
+SELECT NOW(), NOW(), 's3', 's3://cape-datalake/eng/clean-uploads/', 'Engineering Cleaned Upload Data', t.id, '{"bucket": "cape-datalake", "path_prefix": "eng/clean-uploads/", "category": "clean_uploads"}'::jsonb
 FROM tributary t WHERE t.code = 'ENG'
 UNION ALL
-SELECT NOW(), NOW(), 's3', 's3://cape-datalake/eng/raw-results/', 'Engineering Raw Analysis Results', t.id, 'write', '{"bucket": "cape-datalake", "path_prefix": "eng/raw-results/", "category": "raw_results"}'::jsonb
+SELECT NOW(), NOW(), 's3', 's3://cape-datalake/eng/raw-results/', 'Engineering Raw Analysis Results', t.id, '{"bucket": "cape-datalake", "path_prefix": "eng/raw-results/", "category": "raw_results"}'::jsonb
 FROM tributary t WHERE t.code = 'ENG'
 UNION ALL
-SELECT NOW(), NOW(), 's3', 's3://cape-datalake/eng/clean-results/', 'Engineering Cleaned Analysis Results', t.id, 'read', '{"bucket": "cape-datalake", "path_prefix": "eng/clean-results/", "category": "clean_results"}'::jsonb
+SELECT NOW(), NOW(), 's3', 's3://cape-datalake/eng/clean-results/', 'Engineering Cleaned Analysis Results', t.id, '{"bucket": "cape-datalake", "path_prefix": "eng/clean-results/", "category": "clean_results"}'::jsonb
 FROM tributary t WHERE t.code = 'ENG'
 UNION ALL
 -- Platform Engineering: Subset of resources
-SELECT NOW(), NOW(), 's3', 's3://cape-datalake/plat-eng/deployments/', 'Platform Engineering Deployments', t.id, 'both', '{"bucket": "cape-datalake", "path_prefix": "plat-eng/deployments/", "category": "deployments"}'::jsonb
+SELECT NOW(), NOW(), 's3', 's3://cape-datalake/plat-eng/deployments/', 'Platform Engineering Deployments', t.id, '{"bucket": "cape-datalake", "path_prefix": "plat-eng/deployments/", "category": "deployments"}'::jsonb
 FROM tributary t WHERE t.code = 'PLAT-ENG'
 UNION ALL
 -- Data Science: Varied resources
-SELECT NOW(), NOW(), 's3', 's3://cape-datalake/ds/raw-uploads/', 'Data Science Raw Uploads', t.id, 'write', '{"bucket": "cape-datalake", "path_prefix": "ds/raw-uploads/", "category": "raw_uploads"}'::jsonb
+SELECT NOW(), NOW(), 's3', 's3://cape-datalake/ds/raw-uploads/', 'Data Science Raw Uploads', t.id, '{"bucket": "cape-datalake", "path_prefix": "ds/raw-uploads/", "category": "raw_uploads"}'::jsonb
 FROM tributary t WHERE t.code = 'DS'
 UNION ALL
-SELECT NOW(), NOW(), 's3', 's3://cape-datalake/ds/models/', 'Data Science ML Models', t.id, 'both', '{"bucket": "cape-datalake", "path_prefix": "ds/models/", "category": "models"}'::jsonb
+SELECT NOW(), NOW(), 's3', 's3://cape-datalake/ds/models/', 'Data Science ML Models', t.id, '{"bucket": "cape-datalake", "path_prefix": "ds/models/", "category": "models"}'::jsonb
 FROM tributary t WHERE t.code = 'DS'
 UNION ALL
-SELECT NOW(), NOW(), 's3', 's3://cape-datalake/ds/notebooks/', 'Data Science Jupyter Notebooks', t.id, 'both', '{"bucket": "cape-datalake", "path_prefix": "ds/notebooks/", "category": "notebooks"}'::jsonb
+SELECT NOW(), NOW(), 's3', 's3://cape-datalake/ds/notebooks/', 'Data Science Jupyter Notebooks', t.id, '{"bucket": "cape-datalake", "path_prefix": "ds/notebooks/", "category": "notebooks"}'::jsonb
 FROM tributary t WHERE t.code = 'DS'
 UNION ALL
 -- Operations: Basic resources
-SELECT NOW(), NOW(), 's3', 's3://cape-datalake/ops/logs/', 'Operations System Logs', t.id, 'both', '{"bucket": "cape-datalake", "path_prefix": "ops/logs/", "category": "logs"}'::jsonb
+SELECT NOW(), NOW(), 's3', 's3://cape-datalake/ops/logs/', 'Operations System Logs', t.id, '{"bucket": "cape-datalake", "path_prefix": "ops/logs/", "category": "logs"}'::jsonb
 FROM tributary t WHERE t.code = 'OPS';
 
 -- Shared resources (no tributary ownership)
-INSERT INTO resource (created_at, last_edited, resource_type, resource_identifier, display_name, tributary_id, access_type, attributes) VALUES
-(NOW(), NOW(), 's3', 's3://cape-datalake/shared/', 'Shared Resources - All Access', NULL, 'read', '{"bucket": "cape-datalake", "path_prefix": "shared/", "category": "shared"}'::jsonb);
+INSERT INTO resource (created_at, last_edited, resource_type, resource_identifier, display_name, tributary_id, attributes) VALUES
+(NOW(), NOW(), 's3', 's3://cape-datalake/shared/', 'Shared Resources - All Access', NULL, '{"bucket": "cape-datalake", "path_prefix": "shared/", "category": "shared"}'::jsonb);
 
 -- Non-S3 resource examples
-INSERT INTO resource (created_at, last_edited, resource_type, resource_identifier, display_name, tributary_id, access_type, attributes)
-SELECT NOW(), NOW(), 'ec2', 'arn:aws:ec2:us-east-1:123456789012:instance/i-eng001', 'Engineering Web Server', t.id, 'ssh', '{"instance_id": "i-eng001", "instance_type": "t3.medium", "vpc_id": "vpc-eng"}'::jsonb
+INSERT INTO resource (created_at, last_edited, resource_type, resource_identifier, display_name, tributary_id, attributes)
+SELECT NOW(), NOW(), 'ec2', 'arn:aws:ec2:us-east-1:123456789012:instance/i-eng001', 'Engineering Web Server', t.id, '{"instance_id": "i-eng001", "instance_type": "t3.medium", "vpc_id": "vpc-eng"}'::jsonb
 FROM tributary t WHERE t.code = 'ENG';
 
-INSERT INTO resource (created_at, last_edited, resource_type, resource_identifier, display_name, tributary_id, access_type, attributes) VALUES
-(NOW(), NOW(), 'application', 'cape-web-app-prod', 'CAPE Web Application (Production)', NULL, 'admin', '{"url": "https://app.cape.example.com", "environment": "prod"}'::jsonb);
+INSERT INTO resource (created_at, last_edited, resource_type, resource_identifier, display_name, tributary_id, attributes) VALUES
+(NOW(), NOW(), 'application', 'cape-web-app-prod', 'CAPE Web Application (Production)', NULL, '{"url": "https://app.cape.example.com", "environment": "prod"}'::jsonb);
+
+-- Insert resource grants (explicit per-subject, per-resource, per-action).
+-- Effective access is the UNION of these grants and role-based tributary
+-- defaults, evaluated default-deny in policy. Each row grants exactly one
+-- action to exactly one subject (user OR tributary).
+
+-- Alice: explicit user WRITE grant on Engineering raw uploads
+INSERT INTO resourcegrant (created_at, last_edited, user_id, resource_id, access_type, granted_by, expires_at)
+SELECT NOW(), NOW(), u.id, r.id, 'write', NULL, NULL
+FROM "user" u, resource r
+WHERE u.email = 'alice.engineer@example.com'
+  AND r.resource_identifier = 's3://cape-datalake/eng/raw-uploads/';
+
+-- Bob: explicit user READ grant on the Data Science ML models bucket
+INSERT INTO resourcegrant (created_at, last_edited, user_id, resource_id, access_type, granted_by, expires_at)
+SELECT NOW(), NOW(), u.id, r.id, 'read', NULL, NULL
+FROM "user" u, resource r
+WHERE u.email = 'bob.datascientist@example.com'
+  AND r.resource_identifier = 's3://cape-datalake/ds/models/';
+
+-- Engineering tributary: READ grant on Engineering cleaned uploads (every ENG member)
+INSERT INTO resourcegrant (created_at, last_edited, tributary_id, resource_id, access_type, granted_by, expires_at)
+SELECT NOW(), NOW(), t.id, r.id, 'read', NULL, NULL
+FROM tributary t, resource r
+WHERE t.code = 'ENG'
+  AND r.resource_identifier = 's3://cape-datalake/eng/clean-uploads/';
+
+-- Diana: expiring user READ grant on Data Science notebooks, granted by Bob
+INSERT INTO resourcegrant (created_at, last_edited, user_id, resource_id, access_type, granted_by, expires_at)
+SELECT NOW(), NOW(), diana.id, r.id, 'read', bob.id, NOW() + INTERVAL '30 days'
+FROM "user" diana, "user" bob, resource r
+WHERE diana.email = 'diana.multirole@example.com'
+  AND bob.email = 'bob.datascientist@example.com'
+  AND r.resource_identifier = 's3://cape-datalake/ds/notebooks/';
 
 -- Insert user-tributary memberships
 -- Alice: Engineering admin
@@ -222,11 +258,25 @@ SELECT
     r.resource_type,
     r.resource_identifier,
     t.code as tributary,
-    r.access_type
+    r.attributes->>'category' as category
 FROM resource r
 LEFT JOIN tributary t ON r.tributary_id = t.id
 ORDER BY r.resource_type, r.resource_identifier
 LIMIT 10;
+
+\echo ''
+\echo 'Resource Grants:'
+SELECT
+    rg.id,
+    COALESCE(gu.email, 'tributary:' || gt.code) as subject,
+    r.resource_identifier,
+    rg.access_type,
+    rg.expires_at
+FROM resourcegrant rg
+LEFT JOIN "user" gu ON rg.user_id = gu.id
+LEFT JOIN tributary gt ON rg.tributary_id = gt.id
+JOIN resource r ON rg.resource_id = r.id
+ORDER BY rg.id;
 
 \echo ''
 \echo 'Resource count by type:'
@@ -242,4 +292,5 @@ SELECT
     (SELECT COUNT(*) FROM tributary) as tributaries,
     (SELECT COUNT(*) FROM usertributary) as memberships,
     (SELECT COUNT(*) FROM resource) as resources,
+    (SELECT COUNT(*) FROM resourcegrant) as resource_grants,
     (SELECT COUNT(*) FROM userattribute) as user_attributes;

@@ -11,6 +11,7 @@
 --   - CASCADE deletes automatically remove:
 --     - user_tributary memberships (FK CASCADE on user_id, tributary_id)
 --     - user_attribute records (FK CASCADE on user_id)
+--     - resourcegrant records (FK CASCADE on user_id, tributary_id, resource_id)
 --     - resources owned by deleted tributaries (FK to tributary_id)
 --
 -- SAFETY:
@@ -28,13 +29,17 @@ SELECT
     (SELECT COUNT(*) FROM tributary) as tributaries,
     (SELECT COUNT(*) FROM usertributary) as memberships,
     (SELECT COUNT(*) FROM resource) as resources,
+    (SELECT COUNT(*) FROM resourcegrant) as resource_grants,
     (SELECT COUNT(*) FROM userattribute) as user_attributes;
 
 -- Delete in proper order to avoid FK constraint violations
 
--- First: Set granted_by to NULL for memberships granted by test users
--- (avoids FK violation when deleting users)
+-- First: Set granted_by to NULL for memberships and grants granted by test
+-- users (avoids FK violation when deleting users; granted_by has no CASCADE)
 UPDATE usertributary SET granted_by = NULL
+WHERE granted_by IN (SELECT id FROM "user" WHERE email LIKE '%@example.com');
+
+UPDATE resourcegrant SET granted_by = NULL
 WHERE granted_by IN (SELECT id FROM "user" WHERE email LIKE '%@example.com');
 
 -- Second: Delete resources owned by test tributaries
@@ -53,12 +58,14 @@ DELETE FROM resource WHERE resource_identifier IN (
 -- Third: Delete test tributaries (by known test codes)
 -- This will CASCADE delete:
 --   - usertributary records (tributary_id FK CASCADE)
+--   - resourcegrant records (tributary_id FK CASCADE) - any remaining
 DELETE FROM tributary WHERE code IN ('ENG', 'PLAT-ENG', 'DS', 'OPS');
 
 -- Fourth: Delete test users (by email pattern)
 -- This will CASCADE delete:
 --   - usertributary records (user_id FK CASCADE) - any remaining
 --   - userattribute records (user_id FK CASCADE)
+--   - resourcegrant records (user_id FK CASCADE) - any remaining
 DELETE FROM "user" WHERE email LIKE '%@example.com';
 
 COMMIT;
@@ -71,6 +78,7 @@ SELECT
     (SELECT COUNT(*) FROM tributary) as tributaries,
     (SELECT COUNT(*) FROM usertributary) as memberships,
     (SELECT COUNT(*) FROM resource) as resources,
+    (SELECT COUNT(*) FROM resourcegrant) as resource_grants,
     (SELECT COUNT(*) FROM userattribute) as user_attributes;
 
 \echo ''
