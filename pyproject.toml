@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cape-cod-db"
-version = "0.4.0"
+version = "0.4.1"
 description = "SQLModel definition of the CAPE environment database."
 authors = ["L. Drew Pihera <drew.pihera@gtri.gatech.edu>"]
 license = "Apache-2.0"
