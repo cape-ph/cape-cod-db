@@ -169,6 +169,20 @@ ever.
 This script requires the `DB_URL` environment variable be set and does not work
 with alembic at all, so the alembic config is not needed.
 
+### Running Tests
+
+Unit tests live in `tests/` and run with `pytest` (installed via
+`poetry install`). They are plain unit tests and do not require a running
+database.
+
+```bash
+# run the full suite
+poetry run pytest
+
+# run a single file or test, verbosely
+poetry run pytest tests/test_db_url.py -v
+```
+
 ### Test Data
 
 Test data fixtures are provided in `fixtures/test/`:

@@ -1,11 +1,12 @@
 import logging
 
+from sqlalchemy.engine import make_url
 from sqlmodel import SQLModel, create_engine
 
 db_url = None
 
 try:
-    from .migrations.env import config
+    from .migrations.env import db_url
 
     logger = logging.getLogger("alembic.env")
 
@@ -13,7 +14,6 @@ try:
     # doing orm things (e.g. in an api lambda) we need another source to check
     # some other source for the DB  URL as the config object doesn't exit in
     # env.py. alembic doesn't play when we're just doing orm things.
-    db_url = config.get_main_option("sqlalchemy.url")
 except AttributeError:
     logging.basicConfig()
     logger = logging.getLogger(__file__)
@@ -33,7 +33,9 @@ if db_url is None:
     )
     exit(1)
 
-logger.info(f"Configured for database: {db_url}")
+logger.info(
+    f"Configured for database: {make_url(db_url).render_as_string(hide_password=True)}"
+)
 
 engine = create_engine(db_url)
 

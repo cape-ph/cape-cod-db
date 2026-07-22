@@ -3,8 +3,11 @@ import os
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
-from sqlmodel import SQLModel
+from sqlalchemy import pool
+from sqlalchemy.engine import make_url
+from sqlmodel import SQLModel, create_engine
+
+from cape_cod_db.db_url import resolve_db_url
 
 # NOTE: as new table models are added, they need to be imported here.
 # These imports register the models on SQLModel.metadata so Alembic
@@ -43,21 +46,12 @@ target_metadata = SQLModel.metadata
 # - alembic config file value `sqlalchemy.url`
 
 cli_args = context.get_x_argument(as_dictionary=True)
-
-# first try a cli arg
-db_url = cli_args.get("db_url", None)
-
-# then an env var
-if db_url is None:
-    db_url = os.getenv("DB_URL")
-
-# we've already got the file config, so if db_url is not None by here, overwrite
-# the file config value
-if db_url is not None:
-    config.set_main_option("sqlalchemy.url", db_url)
+db_url = resolve_db_url(
+    cli_args, os.environ, config.get_main_option("sqlalchemy.url")
+)
 
 logging.info(
-    f"Configured for database: {config.get_main_option('sqlalchemy.url')}"
+    f"Configured for database: {make_url(db_url).render_as_string(hide_password=True)}"
 )
 
 # other values from the config, defined by the needs of env.py,
@@ -96,9 +90,8 @@ def run_migrations_offline() -> None:
         "pk": "pk_%(table_name)s",
     }
 
-    url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url,
+        url=db_url,
         target_metadata=target_metadata,
         # look for column type changes
         compare_type=True,
@@ -123,11 +116,7 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    connectable = create_engine(db_url, poolclass=pool.NullPool)
 
     # since different DB vendors use different default naming conventions for
     # things, and sqlalchemy can have issue with these sometimes, we're using
